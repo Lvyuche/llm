@@ -11,7 +11,8 @@ class TextDataset(Dataset):
         with open(filepath, 'r', encoding='utf-8') as file:
             text = file.read()
         words = text.split()
-        self.word_to_idx = {word: idx for idx, word in enumerate(set(words))}
+        self.word_to_idx = {"<UNK>": 0}  # 添加 UNK 标记
+        self.word_to_idx.update({word: idx for idx, word in enumerate(set(words), 1)})
         self.idx_to_word = {idx: word for word, idx in self.word_to_idx.items()}
         self.vocab_size = len(self.word_to_idx)
         self.seq_length = seq_length
@@ -30,8 +31,8 @@ class TextDataset(Dataset):
 
     def __getitem__(self, idx):
         seq_in, seq_out = self.data[idx]
-        x = torch.tensor([self.word_to_idx[word] for word in seq_in], dtype=torch.long)
-        y = torch.tensor(self.word_to_idx[seq_out], dtype=torch.long)
+        x = torch.tensor([self.word_to_idx.get(word, 0) for word in seq_in], dtype=torch.long)
+        y = torch.tensor(self.word_to_idx.get(seq_out, 0), dtype=torch.long)
         return x, y
 
 # 定义MLP模型
@@ -59,7 +60,7 @@ dataset = TextDataset(filepath, seq_length)
 dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
 # 加载预训练的Word2Vec模型
-word2vec_model = KeyedVectors.load_word2vec_format('path/to/word2vec.bin', binary=True)
+word2vec_model = KeyedVectors.load_word2vec_format('word2vec/GoogleNews-vectors-negative300.bin', binary=True)
 
 # 创建embedding矩阵
 embedding_dim = word2vec_model.vector_size
@@ -94,7 +95,7 @@ for epoch in range(epochs):
 # 测试模型
 def predict(model, words, word_to_idx, idx_to_word, seq_length, n_words):
     model.eval()
-    input_seq = [word_to_idx[word] for word in words]
+    input_seq = [word_to_idx.get(word, 0) for word in words]
     input_seq = torch.tensor(input_seq, dtype=torch.long).unsqueeze(0)
     predicted_text = words[:]
     for _ in range(n_words):
@@ -106,6 +107,6 @@ def predict(model, words, word_to_idx, idx_to_word, seq_length, n_words):
         input_seq = torch.cat((input_seq[:, 1:], top_idx.unsqueeze(0)), dim=1)
     return ' '.join(predicted_text)
 
-start_text = "hello world this is a"
+start_text = "I am a student and"
 predicted_text = predict(model, start_text.split(), dataset.word_to_idx, dataset.idx_to_word, seq_length, 20)
 print(predicted_text)
