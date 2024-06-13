@@ -5,13 +5,13 @@ from torch.utils.data import Dataset, DataLoader
 from gensim.models import KeyedVectors
 import numpy as np
 
-# 创建一个简单的数据集
+# Create a simple dataset
 class TextDataset(Dataset):
     def __init__(self, filepath, seq_length):
         with open(filepath, 'r', encoding='utf-8') as file:
             text = file.read()
         words = text.split()
-        self.word_to_idx = {"<UNK>": 0}  # 添加 UNK 标记
+        self.word_to_idx = {"<UNK>": 0}  # Add UNK token
         self.word_to_idx.update({word: idx for idx, word in enumerate(set(words), 1)})
         self.idx_to_word = {idx: word for word, idx in self.word_to_idx.items()}
         self.vocab_size = len(self.word_to_idx)
@@ -35,7 +35,7 @@ class TextDataset(Dataset):
         y = torch.tensor(self.word_to_idx.get(seq_out, 0), dtype=torch.long)
         return x, y
 
-# 定义MLP模型
+# Define MLP model
 class MLPModel(nn.Module):
     def __init__(self, embedding_matrix, hidden_dim, seq_length):
         super(MLPModel, self).__init__()
@@ -46,23 +46,23 @@ class MLPModel(nn.Module):
         self.fc2 = nn.Linear(hidden_dim, vocab_size)
 
     def forward(self, x):
-        x = self.embedding(x)  # 将单词索引转换为嵌入向量
-        x = x.view(x.size(0), -1)  # 展平嵌入向量
-        x = self.fc1(x)  # 全连接层1
-        x = self.relu(x)  # ReLU 激活函数
-        x = self.fc2(x)  # 全连接层2，输出预测
+        x = self.embedding(x)  # Convert word indices to embedding vectors
+        x = x.view(x.size(0), -1)  # Flatten the embedding vectors
+        x = self.fc1(x)  # Fully connected layer 1
+        x = self.relu(x)  # ReLU activation function
+        x = self.fc2(x)  # Fully connected layer 2, output predictions
         return x
 
-# 准备数据
+# Prepare data
 filepath = 'data/helloworld.txt'
 seq_length = 5
 dataset = TextDataset(filepath, seq_length)
 dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
-# 加载预训练的Word2Vec模型
+# Load pre-trained Word2Vec model
 word2vec_model = KeyedVectors.load_word2vec_format('word2vec/GoogleNews-vectors-negative300.bin', binary=True)
 
-# 创建embedding矩阵
+# Create embedding matrix
 embedding_dim = word2vec_model.vector_size
 embedding_matrix = np.zeros((dataset.vocab_size, embedding_dim))
 for word, idx in dataset.word_to_idx.items():
@@ -71,15 +71,15 @@ for word, idx in dataset.word_to_idx.items():
     else:
         embedding_matrix[idx] = np.random.normal(scale=0.6, size=(embedding_dim,))
 
-# 模型参数
+# Model parameters
 hidden_dim = 128
 
-# 实例化模型、损失函数和优化器
+# Instantiate model, loss function, and optimizer
 model = MLPModel(embedding_matrix, hidden_dim, seq_length)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-# 训练模型
+# Train the model
 epochs = 20
 for epoch in range(epochs):
     total_loss = 0
@@ -92,7 +92,7 @@ for epoch in range(epochs):
         total_loss += loss.item()
     print(f'Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(dataloader)}')
 
-# 测试模型
+# Test the model
 def predict(model, words, word_to_idx, idx_to_word, seq_length, n_words):
     model.eval()
     input_seq = [word_to_idx.get(word, 0) for word in words]
