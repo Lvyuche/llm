@@ -107,6 +107,6 @@ def predict(model, words, word_to_idx, idx_to_word, seq_length, n_words):
         input_seq = torch.cat((input_seq[:, 1:], top_idx.unsqueeze(0)), dim=1)
     return ' '.join(predicted_text)
 
-start_text = "I am a student and"
+start_text = "hello world and student is"
 predicted_text = predict(model, start_text.split(), dataset.word_to_idx, dataset.idx_to_word, seq_length, 20)
 print(predicted_text)
