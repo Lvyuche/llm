@@ -62,21 +62,12 @@ for word, idx in dataset.word_to_idx.items():
         embedding_matrix[idx] = np.random.normal(scale=0.6, size=(embedding_dim,))
         
 # Print the first three words and their embeddings
-print("First ten words and their embeddings:")
+print("First three words and their embeddings:")
 for i, (word, idx) in enumerate(dataset.word_to_idx.items()):
     if i >= 3:
         break
     embedding = embedding_matrix[idx]
-    print(f"Word: {word}, Embedding: {embedding[:3]}...")  # Print only the first 10 dimensions for readability
-
-# # Randomly print some word embeddings and check if they are mapped to <UNK>
-# print("Randomly selected word embeddings:")
-# unk_count = 0
-# for _ in range(100):  # Print 100 random word embeddings
-#     random_word = np.random.choice(list(dataset.word_to_idx.keys()))
-#     if random_word not in word2vec_model:
-#         unk_count += 1
-#     print(f"Word: {random_word}, Is <UNK>: {random_word not in word2vec_model}")
+    print(f"Word: {word}, Embedding: {embedding[:3]}...")  # Print only the first 3 dimensions for readability
 
 # Define MLP model with more layers and neurons
 class MLPModel(nn.Module):
@@ -131,7 +122,9 @@ for epoch in range(epochs):
 model_info = {
     'state_dict': model.state_dict(),
     'seq_length': seq_length,
-    'epochs': epochs
+    'epochs': epochs,
+    'word_to_idx': dataset.word_to_idx,
+    'idx_to_word': dataset.idx_to_word
 }
 torch.save(model_info, 'mlp_model.pth')
 print("Model saved to mlp_model.pth")
