@@ -10,7 +10,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f'Using device: {device}')
 
 # Load the model and metadata
-model_info = torch.load('mlp_model.pth')
+model_info = torch.load('mlp_model_256dim_ 30epoch.pth')
 state_dict = model_info['state_dict']
 seq_length = model_info['seq_length']
 epochs = model_info['epochs']
@@ -28,6 +28,14 @@ for word, idx in word_to_idx.items():
         embedding_matrix[idx] = word2vec_model[word]
     else:
         embedding_matrix[idx] = np.random.normal(scale=0.6, size=(embedding_dim,))
+
+# Print the first three words and their embeddings
+print("First three words and their embeddings:")
+for i, (word, idx) in enumerate(word_to_idx.items()):
+    if i >= 3:
+        break
+    embedding = embedding_matrix[idx]
+    print(f"Word: {word}, Embedding: {embedding[:3]}...")  # Print only the first 3 dimensions for readability
 
 # Define MLP model with more layers and neurons
 class MLPModel(nn.Module):
@@ -94,7 +102,6 @@ def beam_search_with_ngram(model, start_text, word_to_idx, idx_to_word, seq_leng
         all_candidates = []
         for seq, score in sequences:
             seq_tensor = torch.tensor(seq[-seq_length:], dtype=torch.long).unsqueeze(0).to(device)
-            print(f"Input shape: {seq_tensor.shape}")
             with torch.no_grad():
                 output = model(seq_tensor)
             log_probs, indices = torch.topk(torch.nn.functional.log_softmax(output, dim=1), beam_width)

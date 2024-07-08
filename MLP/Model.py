@@ -60,14 +60,6 @@ for word, idx in dataset.word_to_idx.items():
         embedding_matrix[idx] = word2vec_model[word]
     else:
         embedding_matrix[idx] = np.random.normal(scale=0.6, size=(embedding_dim,))
-        
-# Print the first three words and their embeddings
-print("First three words and their embeddings:")
-for i, (word, idx) in enumerate(dataset.word_to_idx.items()):
-    if i >= 3:
-        break
-    embedding = embedding_matrix[idx]
-    print(f"Word: {word}, Embedding: {embedding[:3]}...")  # Print only the first 3 dimensions for readability
 
 # Define MLP model with more layers and neurons
 class MLPModel(nn.Module):
@@ -126,5 +118,14 @@ model_info = {
     'word_to_idx': dataset.word_to_idx,
     'idx_to_word': dataset.idx_to_word
 }
-torch.save(model_info, 'mlp_model.pth')
+
+# Print the first three words and their embeddings
+print("First three words and their embeddings:")
+for i, (word, idx) in enumerate(dataset.word_to_idx.items()):
+    if i >= 3:
+        break
+    embedding = embedding_matrix[idx]
+    print(f"Word: {word}, Embedding: {embedding[:3]}...")  # Print only the first 3 dimensions for readability
+
+torch.save(model_info, 'mlp_model_' + str(hidden_dim) + 'dim_ ' + str(epoch + 1) + 'epoch.pth')
 print("Model saved to mlp_model.pth")
